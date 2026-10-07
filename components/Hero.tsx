@@ -18,16 +18,7 @@ export default function Hero() {
     setAutoplayBlocked(true)
     video.play().catch(() => {})
 
-    const unlock = () => {
-      if (video.muted) {
-        video.muted = false
-        setMuted(false)
-        setAutoplayBlocked(false)
-        video.play().catch(() => {})
-      }
-    }
-    window.addEventListener('pointerdown', unlock, { once: true })
-    window.addEventListener('keydown', unlock, { once: true })
+    // No separate unlock listener needed — toggleMute handles unmute + play()
 
     const io = new IntersectionObserver(
       ([e]) => { if (e.intersectionRatio < 0.35) video.pause(); else video.play().catch(() => {}) },
@@ -39,7 +30,16 @@ export default function Hero() {
 
   const toggleMute = () => {
     const video = videoRef.current; if (!video) return
-    video.muted = !video.muted; setMuted(video.muted)
+    const nowMuted = !video.muted
+    video.muted = nowMuted
+    setMuted(nowMuted)
+    setAutoplayBlocked(nowMuted)
+    // Mobile browsers pause on unmute — always re-trigger play
+    video.play().catch(() => {
+      video.muted = true
+      setMuted(true)
+      setAutoplayBlocked(true)
+    })
   }
 
   return (
