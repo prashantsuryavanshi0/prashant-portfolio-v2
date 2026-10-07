@@ -12,18 +12,19 @@ export default function Hero() {
     const video = videoRef.current
     if (!video) return
 
-    video.muted = false
-    video.play()
-      .then(() => setMuted(false))
-      .catch(() => {
-        video.muted = true
-        setMuted(true)
-        setAutoplayBlocked(true)
-        video.play().catch(() => {})
-      })
+    // Always start muted — guaranteed autoplay on all browsers/mobile
+    video.muted = true
+    setMuted(true)
+    setAutoplayBlocked(true)
+    video.play().catch(() => {})
 
     const unlock = () => {
-      if (video.muted) { video.muted = false; setMuted(false); setAutoplayBlocked(false) }
+      if (video.muted) {
+        video.muted = false
+        setMuted(false)
+        setAutoplayBlocked(false)
+        video.play().catch(() => {})
+      }
     }
     window.addEventListener('pointerdown', unlock, { once: true })
     window.addEventListener('keydown', unlock, { once: true })
@@ -51,6 +52,7 @@ export default function Hero() {
       <video
         ref={videoRef}
         loop playsInline preload="auto"
+        disablePictureInPicture
         style={{
           position: 'absolute',
           top: 0, left: 0,
@@ -59,6 +61,8 @@ export default function Hero() {
           objectPosition: 'center center',
           pointerEvents: 'none',
           zIndex: 0,
+          willChange: 'transform',
+          transform: 'translateZ(0)',
         }}
       >
         <source src="/intro.mp4" type="video/mp4" />
